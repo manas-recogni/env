@@ -70,7 +70,7 @@ ZSH_THEME="robbyrussell"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git git-prompt)
+plugins=(git-prompt)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -104,3 +104,6 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 alias code-remote='function _code_remote() { code --folder-uri "vscode-remote://ssh-remote+$1$2"; }; _code_remote'
+
+#add machine name to right prompt in green
+RPROMPT="${RPROMPT} %{$fg[green]%}%m%{$reset_color%}"
