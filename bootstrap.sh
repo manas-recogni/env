@@ -25,4 +25,8 @@ fi
 if [ ! -f ~/.gitconfig ]; then
   echo "Copying git configuration..."
   cp gitconfig ~/.gitconfig
+
+  # setup git environment
+  git config --global user.name "Manas Maheshwari"
+  git config --global user.email "manas.maheshwari@recogni.com"
 fi
