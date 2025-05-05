@@ -1,0 +1,28 @@
+# This is Git's per-user configuration file.
+[user]
+	name = Manas Maheshwari
+	email = manas.maheshwari@recogni.com
+[diff]
+	tool = cursor
+[difftool "vscode"]
+	cmd = code --wait --diff $LOCAL $REMOTE
+[difftool]
+	prompt = false
+[merge]
+	tool = cursor
+[mergetool "vscode"]
+	cmd = code --wait $MERGED
+[mergetool]
+	prompt = false
+[core]
+	pager = diff-so-fancy | less --tabs=4 -RFX
+[color]
+	ui = true
+[alias]
+	vdiff = difftool
+[difftool "cursor"]
+	cmd = cursor --diff --wait \"$LOCAL\" \"$REMOTE\"
+[mergetool "cursor"]
+	cmd = cursor --wait $MERGED
+[diff "tool.vscode"]
+	cmd = code --wait --diff $LOCAL $REMOTE
