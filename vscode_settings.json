@@ -1,0 +1,84 @@
+{
+    "github.copilot.enable": {
+        "*": true,
+        "plaintext": true,
+        "markdown": false,
+        "scminput": false
+    },
+    "terminal.integrated.scrollback": 100000,
+    "terminal.integrated.persistentSessionScrollback": 10000,
+    "terminal.integrated.profiles.linux": {
+        "tmux": {
+            "path": "bash",
+            "args": [
+                "-c",
+                "tmux new-session -As ${PWD##*/}",
+            ]
+        }
+    },
+    "terminal.integrated.enableMultiLinePasteWarning": "never",
+    "security.workspace.trust.untrustedFiles": "open",
+    "makefile.configureOnOpen": true,
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true,
+    "lldb.launch.stdio": null,
+    "terminal.integrated.defaultProfile.linux": "tmux",
+    "yaml.schemas": {
+        "file:///home/manas.maheshwari/.vscode-server/extensions/atlassian.atlascode-3.8.2/resources/schemas/pipelines-schema.json": "bitbucket-pipelines.yml"
+    },
+    "atlascode.jira.jqlList": [
+        {
+            "id": "58fd30b5-e695-4ce0-bc91-c15a3a7f5d84",
+            "enabled": true,
+            "name": "My recogni Issues",
+            "query": "assignee = currentUser() AND resolution = Unresolved ORDER BY lastViewed DESC",
+            "siteId": "f1091517-4581-4117-bc41-71b5ae2ea454",
+            "monitor": true
+        },
+        {
+            "id": "c6e079be-3e1f-4a9a-a127-7ad40dd9256c",
+            "siteId": "f1091517-4581-4117-bc41-71b5ae2ea454",
+            "name": "ILC drivers",
+            "query": "component = \"ILC: Board and Interface Drivers\"",
+            "enabled": true,
+            "monitor": true
+        },
+        {
+            "id": "6f90402d-dbde-4840-afd2-549050840548",
+            "siteId": "f1091517-4581-4117-bc41-71b5ae2ea454",
+            "name": "PyxisOS",
+            "query": "issuekey in portfolioChildIssuesOf(\"SSW-63\") ORDER BY created DESC",
+            "enabled": true,
+            "monitor": true
+        }
+    ],
+    "atlascode.jira.lastCreateSiteAndProject": {
+        "siteId": "f1091517-4581-4117-bc41-71b5ae2ea454",
+        "projectKey": "SSW"
+    },
+    "workbench.editorAssociations": {
+        "*.copilotmd": "vscode.markdown.preview.editor",
+        "*.bin": "default"
+    },
+    "hexeditor.columnWidth": 16,
+    "hexeditor.showDecodedText": true,
+    "hexeditor.defaultEndianness": "little",
+    "hexeditor.inspectorType": "aside",
+    "workbench.settings.applyToAllProfiles": [
+        "terminal.integrated.defaultProfile.linux"
+    ],
+    "terminal.integrated.shellIntegration.enabled": false,
+    "git.autofetch": true,
+    "atlascode.jira.startWorkBranchTemplate.customPrefixes": [
+        "manas.m/"
+    ],
+    "atlascode.jira.startWorkBranchTemplate.customTemplate": "{{{prefix}}}{{{summary}}}",
+    "atlascode.jira.statusbar.showUser": false,
+    "atlascode.jira.statusbar.showLogin": false,
+    "atlascode.jira.statusbar.showProduct": true,
+    "atlascode.jira.statusbar.enabled": true,
+    "atlascode.bitbucket.pipelines.explorerEnabled": true,
+    "atlascode.bitbucket.explorer.enabled": true,
+    "atlascode.bitbucket.enabled": false
+}
