@@ -15,7 +15,7 @@ from typing import Optional, Tuple
 
 
 class RemoteCodeLauncher:
-    def __init__(self, project: str, remote: str, project_id: str = "software-265220", zone: str = "us-central1-a", remote_home: str = None, ssh_forwarding: bool = True):
+    def __init__(self, project: str, remote: str, project_id: str = "software-265220", zone: str = "us-central1-a", remote_home: str = None, ssh_forwarding: bool = True, repo_origin: str = None, auto_clone: bool = True):
         self.project = project
         self.remote = remote
         self.project_id = project_id
@@ -23,6 +23,8 @@ class RemoteCodeLauncher:
         self.remote_home = remote_home
         self.ssh_forwarding = ssh_forwarding
         self.ssh_port = 22  # Default SSH port
+        self.repo_origin = repo_origin
+        self.auto_clone = auto_clone
         
         # Build the full remote path
         if self.remote_home and not self.project.startswith('/'):
@@ -152,6 +154,93 @@ class RemoteCodeLauncher:
             print("Continuing with VS Code remote connection...")
             return True  # Continue anyway
     
+    def check_remote_folder_exists(self) -> bool:
+        """Check if the remote folder exists and is a git repository."""
+        try:
+            cmd = [
+                "gcloud", "compute", "ssh", 
+                f"{self.remote}",
+                f"--project={self.project_id}",
+                f"--zone={self.zone}",
+                f"--command=test -d '{self.full_remote_path}' && test -d '{self.full_remote_path}/.git' && echo 'Git repo exists' || echo 'Not a git repo or does not exist'",
+                "--quiet"
+            ]
+            
+            # Add SSH forwarding if enabled
+            if self.ssh_forwarding:
+                cmd.extend(["--", "-A"])
+            
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+            
+            if result.returncode == 0 and "Git repo exists" in result.stdout:
+                return True
+            else:
+                return False
+                
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
+            return False
+    
+    def clone_repository(self) -> bool:
+        """Clone the repository if it doesn't exist on the remote machine."""
+        if not self.repo_origin:
+            print("No repository origin specified. Cannot clone repository.")
+            return False
+        
+        # Extract folder name from project path
+        folder_name = os.path.basename(self.project.rstrip('/'))
+        
+        # Construct the repository URL
+        if not self.repo_origin.endswith('/'):
+            repo_url = f"{self.repo_origin}/{folder_name}.git"
+        else:
+            repo_url = f"{self.repo_origin}{folder_name}.git"
+        
+        print(f"Attempting to clone repository: {repo_url}")
+        print(f"Target directory: {self.full_remote_path}")
+        
+        try:
+            # Create parent directory if it doesn't exist
+            parent_dir = os.path.dirname(self.full_remote_path)
+            create_dir_cmd = [
+                "gcloud", "compute", "ssh", 
+                f"{self.remote}",
+                f"--project={self.project_id}",
+                f"--zone={self.zone}",
+                f"--command=mkdir -p '{parent_dir}'",
+                "--quiet"
+            ]
+            
+            if self.ssh_forwarding:
+                create_dir_cmd.extend(["--", "-A"])
+            
+            subprocess.run(create_dir_cmd, capture_output=True, text=True, timeout=10)
+            
+            # Clone the repository
+            clone_cmd = [
+                "gcloud", "compute", "ssh", 
+                f"{self.remote}",
+                f"--project={self.project_id}",
+                f"--zone={self.zone}",
+                f"--command=cd '{parent_dir}' && git clone {repo_url} '{folder_name}'",
+                "--quiet"
+            ]
+            
+            if self.ssh_forwarding:
+                clone_cmd.extend(["--", "-A"])
+            
+            result = subprocess.run(clone_cmd, capture_output=True, text=True, timeout=60)
+            
+            if result.returncode == 0:
+                print(f"Successfully cloned repository to: {self.full_remote_path}")
+                return True
+            else:
+                print(f"Failed to clone repository: {result.stderr}")
+                return False
+                
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError) as e:
+            print(f"Error cloning repository: {e}")
+            return False
+    
     def launch_vscode_remote(self) -> bool:
         """Launch VS Code with remote connection."""
         print(f"Launching VS Code remote connection to: {self.remote}")
@@ -276,6 +365,18 @@ class RemoteCodeLauncher:
             if not self.wait_for_instance_ready():
                 return False
         
+        # Check if remote folder exists and clone if needed
+        if self.auto_clone and not self.check_remote_folder_exists():
+            print(f"Remote folder '{self.full_remote_path}' does not exist or is not a git repository.")
+            if self.repo_origin:
+                print("Attempting to clone repository...")
+                if not self.clone_repository():
+                    print("Failed to clone repository. Continuing with VS Code connection...")
+            else:
+                print("No repository origin specified. VS Code will create the directory if needed.")
+        else:
+            print(f"Remote folder '{self.full_remote_path}' exists and is a git repository.")
+        
         # Validate remote path (optional, will continue even if validation fails)
         self.validate_remote_path()
         
@@ -336,6 +437,16 @@ def main():
         action="store_true",
         help="Test SSH key forwarding to the remote machine"
     )
+    parser.add_argument(
+        "--repo-origin",
+        default="git@github.com:recogni",
+        help="Default repository origin URL for cloning (default: git@github.com:recogni)"
+    )
+    parser.add_argument(
+        "--no-auto-clone",
+        action="store_true",
+        help="Disable automatic repository cloning (enabled by default)"
+    )
     
     args = parser.parse_args()
     
@@ -346,7 +457,9 @@ def main():
         project_id=args.project_id,
         zone=args.zone,
         remote_home=args.remote_home,
-        ssh_forwarding=not args.no_ssh_forwarding
+        ssh_forwarding=not args.no_ssh_forwarding,
+        repo_origin=args.repo_origin,
+        auto_clone=not args.no_auto_clone
     )
     
     if args.test_ssh_forwarding:
